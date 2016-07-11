@@ -1,0 +1,52 @@
+{
+  "AlertDefinition": {
+    "service_name": "KAFKA",
+    "component_name": "KAFKA_BROKER",
+    "name": "kafka_consumer_group_alerting",
+    "label": "Kafka Consumer Group Alerting",
+    "description": "This alert is triggered if a consumer groups lag on a Kafka topic goes above a threshold.",
+    "interval": 5,
+    "scope": "SERVICE",
+    "enabled": true,
+    "source": {
+      "type": "SCRIPT",
+      "path": "kafkaLagAlerting.py",
+      "parameters": [
+      {
+        "name": "topic_pattern",
+        "display_name": "Topic Name pattern",
+        "value": "_MM_",
+        "type": "STRING",
+        "description": "Topic name pattern to filter on"
+      },
+      {
+        "name": "zk_quorum",
+        "display_name": "Zookeeper Quorum",
+        "value": "zk1.cluster1.host:2181,zk2.cluster1.host:2181,zk3.cluster1.host:2181",
+        "type": "STRING",
+        "description": "Comma separated zookeeper addresses of cluster"
+      },
+      {
+        "name": "consumer_group",
+        "display_name": "Consumer Group of Mirrormaker",
+        "value": "mirror-maker",
+        "type": "STRING",
+        "description": "The Consumer Group to monitor that is used by Mirrormaker"
+      },
+      {
+        "name": "lag_tolerance",
+        "display_name": "Consumer group lag tolerance",
+        "value": 100,
+        "type": "STRING",
+        "description": "The maximum number of messages the Consumer can lag behind on the topic"
+      },
+      {
+      "name": "kafka_lib",
+      "display_name": "Optional Kafka lib",
+      "value": "kafka_2.10-0.9.1.0-SNAPSHOT.jar",
+      "type": "STRING",
+      "description": "Optional Kafka lib to prepend to classpath"
+    }]
+    }
+  }
+}
