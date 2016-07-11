@@ -135,7 +135,9 @@ def execute(configurations={}, parameters={}, host_name=None):
     if not consumer_group in run_command(command).split("\n"):
       raise Exception("No consumer group found for ID: "+consumer_group)
     # Get offset per topic list for this ID
-    command = base_command+"/usr/hdp/current/kafka-broker/bin/kafka-consumer-groups.sh --zookeeper "+zk_quorum+" --describe --group "+consumer_group+" --security-protocol PLAINTEXTSASL"
+    command = base_command+"/usr/hdp/current/kafka-broker/bin/kafka-consumer-groups.sh --zookeeper "+zk_quorum+" --describe --group "+consumer_group
+    if security_enabled:
+      command+=" --security-protocol PLAINTEXTSASL"
     output = run_command(command)
     expression = "^"+consumer_group+", +([^,]+), +([^,]+).* ([^,]+),[^,]+$"
     topic_lag = [ line.groups() for line in [re.match(expression,line) for line in output.split("\n") ] if line ]
@@ -161,17 +163,3 @@ def run_command(command):
     raise Exception('Command: '+command+' returned with non-zero code: '+str(p.returncode)+' stderr: '+err+' stdout: '+output)
   else:
     return output
-
-#Wrapper for curl to make it security agnostic
-def curl_request(url,connection_timeout,kerberos_keytab,security_enabled,kerberos_principal,executable_paths,user,tmp_dir='/tmp/'):
-  # Kerberos curl
-  if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
-  # curl requires an integer timeout
-    curl_connection_timeout = int(connection_timeout)
-    summary_response, error_msg, time_millis = curl_krb_request('/tmp/', kerberos_keytab, kerberos_principal, url, "kafka_alert", executable_paths, False, "Kafka Mirrormaker Alert", user, connection_timeout=curl_connection_timeout)
-  # Non-kerberos curl
-  else:
-    req = urllib2.Request(rest_api_request_summary)
-    response = urllib2.urlopen(req)
-    summary_response = response.read()
-  return summary_response
