@@ -33,7 +33,7 @@ import re
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.core.environment import Environment
 
-TOPIC_PATTERN_KEY = 'topic_pattern'
+TOPIC_LIST_KEY = 'topic_list'
 ZK_KEY = 'zk_quorum'
 
 CONSUMER_GROUP_KEY = 'consumer_group'
@@ -97,8 +97,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   if CONNECTION_TIMEOUT_KEY in parameters:
     connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
 
-  if TOPIC_PATTERN_KEY in parameters:
-    topic_pattern = parameters[TOPIC_PATTERN_KEY]
+  if TOPIC_LIST_KEY in parameters:
+    topic_list = parameters[TOPIC_LIST_KEY]
 
   if ZK_KEY in parameters:
     zk_quorum = parameters[ZK_KEY]
@@ -117,7 +117,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     # Get list of topics
     command = "/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper "+zk_quorum+" --list"
-    topic_list = [ topic.strip() for topic in run_command(command).split("\n") if topic_pattern in topic ]
+    filtered_topic_list = [ topic.strip() for topic in run_command(command).split("\n") if topic in topic_list.split(",") ]
+    missing_topics = list(set(topic_list.split(",")) - set(filtered_topic_list))
+    if missing_topics:
+      raise Exception("The following topics were not found in kafka: "+','.join(missing_topics))
     # Check if we need to add fixed jar to classpath
     if kafka_lib:
       lib_path = "/var/lib/ambari-agent/cache/host_scripts/"+kafka_lib
@@ -142,7 +145,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     expression = "^"+consumer_group+", +([^,]+), +([^,]+).* ([^,]+),[^,]+$"
     topic_lag = [ line.groups() for line in [re.match(expression,line) for line in output.split("\n") ] if line ]
     # Find topics that the consumer hasn't picked up
-    missing = list(set(topic_list)-set([ tup[0] for tup in topic_lag ]))
+    missing = list(set(filtered_topic_list)-set([ tup[0] for tup in topic_lag ]))
     if missing:
       raise Exception("Consumer group "+consumer_group+" not connected to: "+','.join(missing))
     # Find topics that are further than the lag
@@ -150,7 +153,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     if greater_than_lag:
       raise Exception("Consumer group "+consumer_group+" breached lag threshold of "+lag_tolerance+". Topic partition->Lag: "+','.join([item[0]+' '+item[1]+'->'+item[2] for item in greater_than_lag]))
     # Return okay at this point
-    return (('OK', ['All topics with pattern of '+topic_pattern+' in lag tolerance of '+lag_tolerance+' for consumer group '+consumer_group]))
+    return (('OK', ['All topics '+topic_list+' in lag tolerance of '+lag_tolerance+' for consumer group '+consumer_group]))
 
   except:
     return (('CRITICAL', [traceback.format_exc()]))

@@ -18,11 +18,11 @@ The alert takes four variables for configuration, and another optional variable 
 
 ```javascript
       {
-        "name": "topic_pattern",
-        "display_name": "Topic Name pattern",
-        "value": "_MM_",
+        "name": "topic_list",
+        "display_name": "Topic Name list",
+        "value": "my_topic1,my_topic2",
         "type": "STRING",
-        "description": "Topic name pattern to filter on"
+        "description": "Comma separated list of topics to monitor"
       },
       {
         "name": "zk_quorum",
@@ -33,8 +33,8 @@ The alert takes four variables for configuration, and another optional variable 
       },
       {
         "name": "consumer_group",
-        "display_name": "Consumer Group",
-        "value": "mirror-maker",
+        "display_name": "Consumer Group to Monitor",
+        "value": "my_consumer",
         "type": "STRING",
         "description": "The Consumer Group to monitor"
       },

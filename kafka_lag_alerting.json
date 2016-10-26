@@ -13,11 +13,11 @@
       "path": "kafkaLagAlerting.py",
       "parameters": [
       {
-        "name": "topic_pattern",
-        "display_name": "Topic Name pattern",
-        "value": "_MM_",
+        "name": "topic_list",
+        "display_name": "Topic Name list",
+        "value": "my_topic1,my_topic2",
         "type": "STRING",
-        "description": "Topic name pattern to filter on"
+        "description": "Comma separated list of topics to monitor"
       },
       {
         "name": "zk_quorum",
@@ -28,10 +28,10 @@
       },
       {
         "name": "consumer_group",
-        "display_name": "Consumer Group of Mirrormaker",
-        "value": "mirror-maker",
+        "display_name": "Consumer Group to Monitor",
+        "value": "my_consumer",
         "type": "STRING",
-        "description": "The Consumer Group to monitor that is used by Mirrormaker"
+        "description": "The Consumer Group to monitor"
       },
       {
         "name": "lag_tolerance",
